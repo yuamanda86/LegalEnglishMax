@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexCase Pro - 法律案例学习平台</title>
+    
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 引入 React 和 ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- 引入 Babel 用于 JSX 转换 -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- 自定义样式和动画 -->
+    <style>
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        .animate-float-delayed {
+            animation: float 7s ease-in-out infinite 2s;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        .ring-pulse::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; right: 0; bottom: 0;
+            border-radius: 50%;
+            border: 2px solid #fbbf24;
+            animation: pulse-ring 3s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* 自定义图标样式 */
+        .icon { display: inline-block; width: 16px; height: 16px; margin-right: 8px; }
+        .icon-scale { background: #f59e0b; border-radius: 4px; }
+        .icon-book { background: #3b82f6; border-radius: 50%; }
+        .icon-layout { background: #10b981; border-radius: 2px; }
+        .icon-chart { background: #8b5cf6; border-radius: 50%; }
+        .icon-check { background: #10b981; border-radius: 50%; position: relative; }
+        .icon-check:after { content: "✓"; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; }
+        .icon-plus { background: #f59e0b; border-radius: 50%; position: relative; }
+        .icon-plus:after { content: "+"; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 12px; }
+        .icon-refresh { background: #6b7280; border-radius: 50%; position: relative; }
+        .icon-refresh:after { content: "↻"; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; }
+        .icon-wand { background: #8b5cf6; border-radius: 2px; position: relative; }
+        .icon-wand:after { content: "⋆"; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg); font-size: 10px; }
+        .icon-file { background: #6b7280; border-radius: 2px; position: relative; }
+        .icon-file:after { content: "F"; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8px; }
+        .icon-save { background: #10b981; border-radius: 2px; position: relative; }
+        .icon-save:after { content: "S"; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8px; }
+        .icon-arrow { background: #6b7280; border-radius: 50%; position: relative; }
+        .icon-arrow:after { content: "→"; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; }
+        .icon-brain { background: #f59e0b; border-radius: 50%; position: relative; }
+        .icon-brain:after { content: "🧠"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8px; }
+        .icon-zap { background: #f59e0b; border-radius: 2px; position: relative; }
+        .icon-zap:after { content: "⚡"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8px; }
+        .icon-share { background: #3b82f6; border-radius: 50%; position: relative; }
+        .icon-share:after { content: "↗"; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; }
+        .icon-git { background: #6b7280; border-radius: 2px; position: relative; }
+        .icon-git:after { content: "⎇"; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8px; }
+        .icon-folder { background: #f59e0b; border-radius: 4px; position: relative; }
+        .icon-folder:after { content: "📁"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8px; }
+        .icon-pen { background: #6b7280; border-radius: 50%; position: relative; }
+        .icon-pen:after { content: "✎"; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <!-- React 挂载点 -->
+    <div id="root"></div>
+
+    <!-- React 逻辑代码 -->
+    <script type="text/babel">
+        // 简化图标组件
+        const Icon = ({ name, size = 16, className = "" }) => {
+            return React.createElement('span', {
+                className: `icon icon-${name} ${className}`,
+                style: { width: `${size}px`, height: `${size}px` }
+            });
+        };
+
+        // 图标包装器
+        const Scale = (props) => Icon({name: 'scale', ...props});
+        const BookOpen = (props) => Icon({name: 'book', ...props});
+        const Layout = (props) => Icon({name: 'layout', ...props});
+        const PieChart = (props) => Icon({name: 'chart', ...props});
+        const CheckCircle = (props) => Icon({name: 'check', ...props});
+        const X = (props) => React.createElement('span', {style: {color: '#ef4444', fontWeight: 'bold'}}, '✕');
+        const Plus = (props) => Icon({name: 'plus', ...props});
+        const RefreshCw = (props) => Icon({name: 'refresh', ...props});
+        const Wand2 = (props) => Icon({name: 'wand', ...props});
+        const FileText = (props) => Icon({name: 'file', ...props});
+        const Save = (props) => Icon({name: 'save', ...props});
+        const ArrowRight = (props) => Icon({name: 'arrow', ...props});
+        const Brain = (props) => Icon({name: 'brain', ...props});
+        const Zap = (props) => Icon({name: 'zap', ...props});
+        const Share2 = (props) => Icon({name: 'share', ...props});
+        const GitPullRequest = (props) => Icon({name: 'git', ...props});
+        const FolderPlus = (props) => Icon({name: 'folder', ...props});
+        const PenTool = (props) => Icon({name: 'pen', ...props});
+
+        // --- 初始数据 ---
+        const initialTermsData = [
+            { id: 1, term: "Stare Decisis", type: "Latin", cn: "遵循先例原则", desc: "To stand by things decided." },
+            { id: 2, term: "Plaintiff", type: "Noun", cn: "原告", desc: "A person who brings a case against another in a court of law." },
+            { id: 101, term: "The motion is denied.", type: "Sentence", cn: "动议被驳回。", desc: "Standard phrase used by a judge to reject a party's request." },
+            // 新增的法律术语
+            { id: 200, term: "Mandamus", type: "Term", cn: "强制令", desc: "A judicial writ commanding a government officer to perform a nondiscretionary duty." },
+            { id: 201, term: "Commission", type: "Term", cn: "委任状", desc: "The formal document evidencing an appointment to public office." },
+            { id: 202, term: "Appointment", type: "Term", cn: "任命", desc: "The act by which the President legally designates an individual to an office." },
+            { id: 203, term: "Signature of the President", type: "Term", cn: "总统签字", desc: "The final decisive act completing an appointment." },
+            { id: 204, term: "Seal of the United States", type: "Term", cn: "国玺", desc: "Affixed by the Secretary of State as a ministerial duty." },
+            { id: 205, term: "Ministerial Duty", type: "Term", cn: "法定行政义务", desc: "A duty dictated by law, not by executive discretion." },
+            { id: 206, term: "Political Act", type: "Term", cn: "政治行为", desc: "Executive actions involving policy discretion, not reviewable by courts." },
+            { id: 207, term: "Vested Legal Right", type: "Term", cn: "既得法律权利", desc: "A right that has fully accrued and cannot be revoked." },
+            { id: 208, term: "Legal Remedy", type: "Term", cn: "法律救济", desc: "A method by which courts protect or enforce a right." },
+            { id: 209, term: "Executive Discretion", type: "Term", cn: "行政裁量", desc: "Freedom of the President to make political decisions." },
+            { id: 210, term: "Judicial Power", type: "Term", cn: "司法权", desc: "Authority to interpret and apply the law." },
+            { id: 211, term: "Original Jurisdiction", type: "Term", cn: "初审管辖权", desc: "Cases the Supreme Court may hear first." },
+            { id: 212, term: "Appellate Jurisdiction", type: "Term", cn: "上诉管辖权", desc: "Review of decisions made by lower courts or authorities." },
+            { id: 213, term: "Constitution", type: "Term", cn: "宪法", desc: "Supreme, written fundamental law." },
+            { id: 214, term: "Repugnant to the Constitution", type: "Term", cn: "与宪法冲突", desc: "Contradicting constitutional provisions." },
+            { id: 215, term: "Void Law", type: "Term", cn: "无效法律", desc: "A statute that is unconstitutional and therefore not law." },
+            { id: 216, term: "Separation of Powers", type: "Term", cn: "三权分立", desc: "Distribution of powers among branches of government." },
+            { id: 217, term: "Rule of Law", type: "Term", cn: "法治原则", desc: "Government bound by law, not individual will." },
+            { id: 218, term: "Judicial Review", type: "Term", cn: "司法审查", desc: "Courts' authority to invalidate unconstitutional laws." },
+            { id: 219, term: "Supreme Law of the Land", type: "Term", cn: "最高法律", desc: "Constitution + laws made pursuant to it." },
+            { id: 220, term: "Ministerial Act", type: "Term", cn: "法定义务行为", desc: "An act required by law without room for discretion." },
+            { id: 221, term: "Political Question Doctrine", type: "Term", cn: "政治问题原则", desc: "Courts cannot decide discretionary executive/political matters." },
+            { id: 222, term: "Writ of Mandamus", type: "Term", cn: "强制令状", desc: "Court order directing an official to perform a legal duty." },
+            { id: 223, term: "Ultra Vires", type: "Term", cn: "越权行为", desc: "Acting beyond the power granted by law or constitution." },
+            { id: 224, term: "Constitutional Supremacy", type: "Term", cn: "宪法至上", desc: "Constitution is superior to statutes." },
+            { id: 225, term: "Void ab initio", type: "Latin", cn: "自始无效", desc: "An unconstitutional act is invalid from the moment enacted." },
+            // 新增的法律句子
+            { id: 300, term: "It is emphatically the province and duty of the judicial department to say what the law is.", type: "Sentence", cn: "法院的职责是阐述法律是什么。", desc: "Key statement establishing judicial review in Marbury v. Madison." },
+            { id: 301, term: "A law repugnant to the constitution is void.", type: "Sentence", cn: "与宪法冲突的法律是无效的。", desc: "Fundamental principle of constitutional supremacy." },
+            { id: 302, term: "The government of the United States has been emphatically termed a government of laws, and not of men.", type: "Sentence", cn: "美国政府被称为法治政府，而非人治政府。", desc: "Emphasizes the rule of law principle." },
+            { id: 303, term: "Where there is a legal right, there is also a legal remedy.", type: "Sentence", cn: "有法律权利就有法律救济。", desc: "Establishes the principle of legal remedies for rights violations." },
+            { id: 304, term: "To withhold the commission is an act deemed by the court not warranted by law, but violative of a vested legal right.", type: "Sentence", cn: "扣留委任状是法院认为没有法律依据且侵犯既得法律权利的行为。", desc: "From Marbury v. Madison regarding the withholding of commissions." }
+        ];
+
+        const initialCasesData = [
+            {
+                id: "donoghue",
+                title: "Donoghue v. Stevenson",
+                citation: "[1932] AC 562",
+                tags: ["Tort Law", "Negligence"],
+                wordCloud: [
+                    { text: "Neighbor", value: 50 }, { text: "Duty", value: 45 }, { text: "Snail", value: 30 },
+                    { text: "Negligence", value: 40 }, { text: "Manufacturer", value: 35 }
+                ],
+                citationNetwork: {
+                    center: "Donoghue v. Stevenson",
+                    precedents: [
+                        { name: "George v. Skivington", type: "Supported" },
+                        { name: "Winterbottom v. Wright", type: "Distinguished" },
+                        { name: "Mullen v. Barr", type: "Overruled" }
+                    ]
+                },
+                issueFlow: [
+                    { id: 'i1', label: "Does a Duty of Care Exist?", type: 'issue' },
+                    { id: 'i2', label: "No Privity of Contract", type: 'fact' },
+                    { id: 'i3', label: "Apply Neighbor Principle", type: 'rule' },
+                    { id: 'i4', label: "Duty Established", type: 'judgment' }
+                ],
+                irac: {
+                    facts: "Mrs. Donoghue drank ginger beer containing a decomposed snail, bought by a friend. She fell ill but had no contract with the seller.",
+                    issue: "Does a manufacturer owe a duty of care to the ultimate consumer despite the absence of a contract?",
+                    rule: "The 'Neighbor Principle': You must take reasonable care to avoid acts or omissions which you can reasonably foresee would be likely to injure your neighbor.",
+                    reasoning: "Lord Atkin reasoned that the law must limit the range of complaints. However, 'neighbors' in law are those closely and directly affected by my act. A consumer is closely affected by a manufacturer's act when the product is sold in a way that prevents intermediate inspection. Therefore, a duty exists.",
+                    holding: "Yes. Manufacturers owe a duty of care to consumers. Appeal allowed."
+                }
+            }
+        ];
+
+        const initialQuestionPool = [
+            { id: 'q1', text: "The _____ is the party who brings the case against another.", answer: "plaintiff", options: ["plaintiff", "defendant", "jury"] },
+            { id: 'q2', text: "_____ Decisis means 'to stand by things decided'.", answer: "stare", options: ["Stare", "Ratio", "Obiter"] }
+        ];
+
+        // --- 可视化组件 ---
+        const WordCloud = ({ words }) => {
+            const getStyle = (val) => {
+                const size = val > 45 ? 'text-5xl' : val > 35 ? 'text-4xl' : val > 25 ? 'text-2xl' : 'text-lg';
+                const opacity = val > 40 ? 'opacity-100' : val > 30 ? 'opacity-80' : 'opacity-60';
+                return `${size} ${opacity}`;
+            };
+            const colors = ["text-blue-600", "text-amber-600", "text-emerald-600", "text-purple-600", "text-rose-600"];
+
+            return (
+                React.createElement('div', { 
+                    className: "relative h-80 w-full bg-slate-50 rounded-xl overflow-hidden flex flex-wrap content-center justify-center p-8 gap-8"
+                }, 
+                    words.map((w, i) => 
+                        React.createElement('span', {
+                            key: i,
+                            className: `font-serif font-bold cursor-pointer hover:scale-125 transition-transform duration-300 ${getStyle(w.value)} ${colors[i % colors.length]} animate-float${i % 2 === 0 ? '' : '-delayed'}`,
+                            style: { animationDelay: `${i * 0.5}s` }
+                        }, w.text)
+                    )
+                )
+            );
+        };
+
+        const CitationNetworkGraph = ({ data }) => {
+            return (
+                React.createElement('div', { className: "h-96 w-full flex items-center justify-center relative bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl overflow-hidden group" },
+                    React.createElement('svg', { className: "absolute inset-0 w-full h-full pointer-events-none" },
+                        data.precedents.map((_, i) => 
+                            React.createElement('line', {
+                                key: i,
+                                x1: "50%", y1: "50%",
+                                x2: `${50 + 35 * Math.cos(2 * Math.PI * i / data.precedents.length)}%`,
+                                y2: `${50 + 35 * Math.sin(2 * Math.PI * i / data.precedents.length)}%`,
+                                stroke: "#cbd5e1",
+                                strokeWidth: "2",
+                                strokeDasharray: "4 2",
+                                className: "opacity-50 group-hover:opacity-100 transition-opacity duration-500"
+                            })
+                        )
+                    ),
+                    
+                    React.createElement('div', { 
+                        className: "absolute z-10 bg-slate-900 text-white w-36 h-36 rounded-full flex items-center justify-center text-center p-4 text-sm font-bold shadow-2xl border-4 border-amber-400 ring-pulse cursor-default"
+                    }, data.center),
+
+                    data.precedents.map((p, i) => {
+                        const angle = (2 * Math.PI * i) / data.precedents.length;
+                        const left = 50 + 35 * Math.cos(angle);
+                        const top = 50 + 35 * Math.sin(angle);
+                        
+                        let colorClass = "bg-white border-slate-300 text-slate-700";
+                        if (p.type === "Overruled") colorClass = "bg-red-50 border-red-300 text-red-800";
+                        if (p.type === "Supported") colorClass = "bg-green-50 border-green-300 text-green-800";
+
+                        return React.createElement('div', {
+                            key: i,
+                            className: `absolute w-28 h-28 rounded-full flex flex-col items-center justify-center text-center p-2 text-xs font-medium shadow-lg border-2 cursor-pointer hover:scale-110 hover:shadow-xl transition-all duration-300 ${colorClass} animate-float${i % 2 === 0 ? '' : '-delayed'}`,
+                            style: { left: `${left}%`, top: `${top}%`, transform: 'translate(-50%, -50%)' }
+                        },
+                            React.createElement('div', { className: "font-bold mb-1 line-clamp-2" }, p.name),
+                            React.createElement('div', { className: "text-[10px] opacity-75 uppercase tracking-wide bg-black/5 px-2 rounded-full" }, p.type)
+                        );
+                    })
+                )
+            );
+        };
+
+        const IssueFlowGraph = ({ flow }) => {
+            return (
+                React.createElement('div', { className: "h-96 w-full p-8 bg-slate-50 rounded-xl overflow-y-auto flex flex-col items-center relative" },
+                    flow.map((node, i) => 
+                        React.createElement('div', { key: node.id, className: "flex flex-col items-center w-full relative z-10" },
+                            React.createElement('div', {
+                                className: `
+                                    w-3/4 md:w-1/2 p-4 rounded-xl border text-center shadow-sm relative transition-all duration-300 hover:shadow-md hover:-translate-y-1
+                                    ${node.type === 'issue' ? 'bg-slate-800 text-white border-slate-800' : 
+                                      node.type === 'judgment' ? 'bg-emerald-100 text-emerald-900 border-emerald-300 font-bold' :
+                                      node.type === 'rule' ? 'bg-amber-50 text-amber-900 border-amber-200' :
+                                      'bg-white text-slate-600 border-slate-200'}
+                                `
+                            },
+                                React.createElement('span', { className: "absolute left-3 top-2 text-[9px] opacity-60 uppercase tracking-widest font-bold" }, node.type),
+                                React.createElement('span', { className: "mt-2 block" }, node.label)
+                            ),
+                            i < flow.length - 1 && React.createElement('div', { className: "h-8 w-0.5 bg-slate-300 my-1 relative" },
+                                React.createElement('div', { className: "absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-300 rounded-full" })
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // --- 模块 0: 案卷中心 ---
+        const CaseManagerModule = ({ cases, setCases, setTerms, setQuestions, setActiveTab, setSelectedCaseId }) => {
+            const [entryMode, setEntryMode] = React.useState('manual');
+            const [step, setStep] = React.useState(1);
+            const [batchText, setBatchText] = React.useState('');
+            const [isProcessing, setIsProcessing] = React.useState(false);
+            const [formData, setFormData] = React.useState({
+                title: '', citation: '', tags: '',
+                facts: '', issue: '', rule: '', reasoning: '', holding: '',
+                keywords: '',
+                newTerm: { term: '', cn: '', desc: '' },
+                newQuestion: { text: '', answer: '', option1: '', option2: '' }
+            });
+
+            const handleSmartBatchProcess = () => {
+                setIsProcessing(true);
+                setTimeout(() => {
+                    const lines = batchText.split('\n').filter(l => l.trim().length > 0);
+                    const extractedTerms = [];
+                    const extractedQuestions = [];
+                    let extractedTitle = "Imported Case";
+                    let extractedIssue = "Extracted Issue";
+
+                    lines.forEach((line, idx) => {
+                        if (line.includes('v.') && idx < 3) extractedTitle = line.trim();
+                        else if (line.includes('?') && idx < 5) extractedIssue = line.trim();
+                        
+                        if (line.includes('-')) {
+                            const [t, d] = line.split('-');
+                            if (t && d) extractedTerms.push({ term: t.trim(), cn: 'Auto-detected', desc: d.trim(), type: 'Context', id: Date.now() + idx });
+                        }
+                        
+                        if (line.includes('?') && line.length > 15) {
+                            extractedQuestions.push({
+                                id: `bq-${Date.now()}-${idx}`,
+                                text: line.trim(),
+                                answer: 'unknown',
+                                options: ['True', 'False']
+                            });
+                        }
+                    });
+
+                    setFormData(prev => ({
+                        ...prev,
+                        title: extractedTitle,
+                        issue: extractedIssue,
+                        facts: batchText.substring(0, 200) + "...",
+                        rule: "Extracted from text context...",
+                        reasoning: "Extracted reasoning chain...",
+                        holding: "Final holding extracted..."
+                    }));
+
+                    if (extractedTerms.length > 0) setTerms(prev => [...prev, ...extractedTerms]);
+                    if (extractedQuestions.length > 0) setQuestions(prev => [...prev, ...extractedQuestions]);
+
+                    setEntryMode('manual');
+                    setIsProcessing(false);
+                    alert(`智能识别完成！提取了 ${extractedTerms.length} 个术语和 ${extractedQuestions.length} 个潜在问题。请在表单中复核。`);
+                }, 1500);
+            };
+
+            const handleSave = () => {
+                const newId = `case-${Date.now()}`;
+                const newCase = {
+                    id: newId,
+                    title: formData.title || "Untitled Case",
+                    citation: formData.citation || "No Citation",
+                    tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+                    wordCloud: formData.keywords.split(',').map(k => ({ text: k.trim(), value: Math.floor(Math.random() * 30) + 20 })),
+                    citationNetwork: {
+                        center: formData.title,
+                        precedents: [] 
+                    },
+                    issueFlow: [
+                        { id: 'i1', label: formData.issue, type: 'issue' },
+                        { id: 'i2', label: formData.rule, type: 'rule' },
+                        { id: 'i3', label: formData.holding, type: 'judgment' }
+                    ],
+                    irac: {
+                        facts: formData.facts,
+                        issue: formData.issue,
+                        rule: formData.rule,
+                        reasoning: formData.reasoning,
+                        holding: formData.holding
+                    }
+                };
+
+                setCases([...cases, newCase]);
+                setSelectedCaseId(newId);
+                if (formData.newTerm.term) setTerms(prev => [...prev, { ...formData.newTerm, id: Date.now(), type: 'Context' }]);
+                if (formData.newQuestion.text) {
+                    setQuestions(prev => [...prev, {
+                        id: `q-${Date.now()}`,
+                        text: formData.newQuestion.text,
+                        answer: formData.newQuestion.answer,
+                        options: [formData.newQuestion.answer, formData.newQuestion.option1, formData.newQuestion.option2].sort(() => Math.random() - 0.5)
+                    }]);
+                }
+                setActiveTab('anatomy');
+            };
+
+            return (
+                React.createElement('div', { className: "max-w-4xl mx-auto animate-fade-in" },
+                    React.createElement('div', { className: "mb-6 flex justify-between items-end" },
+                        React.createElement('div', null,
+                            React.createElement('h2', { className: "text-3xl font-bold text-slate-800" }, "Case Input Center"),
+                            React.createElement('p', { className: "text-slate-500 mt-1" }, "Add new legal cases to your platform.")
+                        ),
+                        React.createElement('div', { className: "bg-slate-100 p-1 rounded-lg flex text-sm font-medium" },
+                            React.createElement('button', {
+                                onClick: () => setEntryMode('manual'),
+                                className: `px-4 py-2 rounded-md transition ${entryMode === 'manual' ? 'bg-white shadow text-slate-800' : 'text-slate-500'}`
+                            }, "Manual Entry"),
+                            React.createElement('button', {
+                                onClick: () => setEntryMode('batch'),
+                                className: `px-4 py-2 rounded-md transition flex items-center gap-2 ${entryMode === 'batch' ? 'bg-white shadow text-slate-800' : 'text-slate-500'}`
+                            }, React.createElement(Wand2, { size: 14 }), " Smart Batch")
+                        )
+                    ),
+                    React.createElement('div', { className: "bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden min-h-[500px]" },
+                        entryMode === 'batch' ? 
+                            React.createElement('div', { className: "p-8 h-full flex flex-col" },
+                                React.createElement('div', { className: "bg-amber-50 border border-amber-200 p-4 rounded-lg mb-4 text-sm text-amber-800" },
+                                    React.createElement('strong', { className: "flex items-center gap-2 mb-1" },
+                                        React.createElement(Zap, { size: 16 }), " 智能识别模式"
+                                    ),
+                                    "粘贴包含案件信息、术语定义（格式：Term - Definition）或题目（格式：Question?）的文本段落。系统将自动解析并填充数据库。"
+                                ),
+                                React.createElement('textarea', {
+                                    value: batchText,
+                                    onChange: (e) => setBatchText(e.target.value),
+                                    className: "flex-1 w-full p-4 border rounded-lg font-mono text-sm bg-slate-50 focus:bg-white transition resize-none mb-4",
+                                    placeholder: "Example input:\n\nMarbury v. Madison\nThe court established judicial review.\n\nMandamus - A judicial writ issued as a command.\nJurisdiction - The official power to make legal decisions.\n\nDoes the Supreme Court have the authority to review acts of Congress?"
+                                }),
+                                React.createElement('button', {
+                                    onClick: handleSmartBatchProcess,
+                                    disabled: isProcessing,
+                                    className: "w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold rounded-lg hover:shadow-lg transition flex items-center justify-center gap-2"
+                                }, isProcessing ? React.createElement(RefreshCw, { className: "animate-spin" }) : React.createElement(Wand2), 
+                                isProcessing ? "Analyzing Text..." : "Process Text & Auto-Populate")
+                            ) : 
+                            React.createElement(React.Fragment, null,
+                                React.createElement('div', { className: "flex bg-slate-50 border-b border-slate-200" },
+                                    [1, 2, 3].map(s => 
+                                        React.createElement('div', {
+                                            key: s,
+                                            className: `flex-1 p-4 text-center text-sm font-bold border-r last:border-0 cursor-pointer ${step === s ? 'text-amber-600 bg-amber-50' : 'text-slate-400'}`,
+                                            onClick: () => setStep(s)
+                                        }, `Step ${s}: ${s === 1 ? 'Basic Info' : s === 2 ? 'IRAC Analysis' : 'Extras'}`)
+                                    )
+                                ),
+                                React.createElement('div', { className: "p-8" },
+                                    step === 1 && React.createElement('div', { className: "space-y-4 animate-slide-in" },
+                                        React.createElement('div', { className: "grid md:grid-cols-2 gap-4" },
+                                            React.createElement('div', null,
+                                                React.createElement('label', { className: "block text-sm font-bold text-slate-700 mb-1" }, "Case Title"),
+                                                React.createElement('input', {
+                                                    value: formData.title,
+                                                    onChange: e => setFormData({...formData, title: e.target.value}),
+                                                    className: "w-full p-2 border rounded",
+                                                    placeholder: "e.g., Marbury v. Madison"
+                                                })
+                                            ),
+                                            React.createElement('div', null,
+                                                React.createElement('label', { className: "block text-sm font-bold text-slate-700 mb-1" }, "Citation"),
+                                                React.createElement('input', {
+                                                    value: formData.citation,
+                                                    onChange: e => setFormData({...formData, citation: e.target.value}),
+                                                    className: "w-full p-2 border rounded",
+                                                    placeholder: "e.g., 5 U.S. 137"
+                                                })
+                                            )
+                                        ),
+                                        React.createElement('div', null,
+                                            React.createElement('label', { className: "block text-sm font-bold text-slate-700 mb-1" }, "Key Keywords (for Visuals)"),
+                                            React.createElement('input', {
+                                                value: formData.keywords,
+                                                onChange: e => setFormData({...formData, keywords: e.target.value}),
+                                                className: "w-full p-2 border rounded",
+                                                placeholder: "Commission, Mandamus, Supreme Court"
+                                            })
+                                        )
+                                    ),
+                                    step === 2 && React.createElement('div', { className: "space-y-4 animate-slide-in" },
+                                        React.createElement('div', { className: "grid grid-cols-2 gap-4" },
+                                            React.createElement('div', { className: "col-span-2" },
+                                                React.createElement('label', { className: "block text-sm font-bold text-slate-700 mb-1" }, "Facts (简述事实)"),
+                                                React.createElement('textarea', {
+                                                    value: formData.facts,
+                                                    onChange: e => setFormData({...formData, facts: e.target.value}),
+                                                    className: "w-full p-2 border rounded h-20"
+                                                })
+                                            ),
+                                            React.createElement('div', { className: "col-span-2" },
+                                                React.createElement('label', { className: "block text-sm font-bold text-slate-700 mb-1" }, "Issue (争议焦点)"),
+                                                React.createElement('input', {
+                                                    value: formData.issue,
+                                                    onChange: e => setFormData({...formData, issue: e.target.value}),
+                                                    className: "w-full p-2 border rounded"
+                                                })
+                                            ),
+                                            React.createElement('div', null,
+                                                React.createElement('label', { className: "block text-sm font-bold text-slate-700 mb-1" }, "Rule (法律规则)"),
+                                                React.createElement('textarea', {
+                                                    value: formData.rule,
+                                                    onChange: e => setFormData({...formData, rule: e.target.value}),
+                                                    className: "w-full p-2 border rounded h-32"
+                                                })
+                                            ),
+                                            React.createElement('div', null,
+                                                React.createElement('label', { className: "block text-sm font-bold text-slate-700 mb-1 flex items-center gap-2" }, 
+                                                    "Reasoning (法院推理)", 
+                                                    React.createElement('span', { className: "text-xs bg-amber-100 text-amber-800 px-1 rounded" }, "New")
+                                                ),
+                                                React.createElement('textarea', {
+                                                    value: formData.reasoning,
+                                                    onChange: e => setFormData({...formData, reasoning: e.target.value}),
+                                                    className: "w-full p-2 border rounded h-32",
+                                                    placeholder: "Explain the logic..."
+                                                })
+                                            ),
+                                            React.createElement('div', { className: "col-span-2" },
+                                                React.createElement('label', { className: "block text-sm font-bold text-slate-700 mb-1" }, "Holding (裁决结果)"),
+                                                React.createElement('textarea', {
+                                                    value: formData.holding,
+                                                    onChange: e => setFormData({...formData, holding: e.target.value}),
+                                                    className: "w-full p-2 border rounded h-16"
+                                                })
+                                            )
+                                        )
+                                    ),
+                                    step === 3 && React.createElement('div', { className: "space-y-6 animate-slide-in" },
+                                        React.createElement('div', { className: "bg-amber-50 p-4 rounded-lg border border-amber-100" },
+                                            React.createElement('h4', { className: "font-bold text-amber-800 mb-2 text-sm uppercase" }, "Add a Related Term"),
+                                            React.createElement('div', { className: "grid grid-cols-2 gap-2" },
+                                                React.createElement('input', {
+                                                    value: formData.newTerm.term,
+                                                    onChange: e => setFormData({...formData, newTerm: {...formData.newTerm, term: e.target.value}}),
+                                                    placeholder: "Term",
+                                                    className: "p-2 border rounded text-sm"
+                                                }),
+                                                React.createElement('input', {
+                                                    value: formData.newTerm.cn,
+                                                    onChange: e => setFormData({...formData, newTerm: {...formData.newTerm, cn: e.target.value}}),
+                                                    placeholder: "Chinese",
+                                                    className: "p-2 border rounded text-sm"
+                                                }),
+                                                React.createElement('input', {
+                                                    value: formData.newTerm.desc,
+                                                    onChange: e => setFormData({...formData, newTerm: {...formData.newTerm, desc: e.target.value}}),
+                                                    placeholder: "Definition",
+                                                    className: "col-span-2 p-2 border rounded text-sm"
+                                                })
+                                            )
+                                        )
+                                    )
+                                ),
+                                React.createElement('div', { className: "bg-slate-50 p-4 border-t border-slate-200 flex justify-between" },
+                                    step > 1 ? React.createElement('button', {
+                                        onClick: () => setStep(step - 1),
+                                        className: "px-6 py-2 rounded text-slate-600 hover:bg-slate-200"
+                                    }, "Back") : React.createElement('div', null),
+                                    step < 3 ? React.createElement('button', {
+                                        onClick: () => setStep(step + 1),
+                                        className: "px-6 py-2 bg-slate-800 text-white rounded hover:bg-slate-900 flex items-center gap-2"
+                                    }, "Next", React.createElement(ArrowRight, { size: 16 })) : 
+                                    React.createElement('button', {
+                                        onClick: handleSave,
+                                        className: "px-8 py-2 bg-amber-500 text-white font-bold rounded hover:bg-amber-600 flex items-center gap-2"
+                                    }, React.createElement(Save, { size: 18 }), " Create Case Platform")
+                                )
+                            )
+                    )
+                )
+            );
+        };
+
+        // --- 模块 1: 术语库 ---
+        const LexiconModule = ({ terms, setTerms }) => {
+            const [filter, setFilter] = React.useState('All');
+            const [searchTerm, setSearchTerm] = React.useState('');
+            const [showAddForm, setShowAddForm] = React.useState(false);
+            const [isBatchMode, setIsBatchMode] = React.useState(false);
+            const [batchInput, setBatchInput] = React.useState('');
+
+            const handleBatchAdd = () => {
+                const lines = batchInput.split('\n');
+                const newTerms = [];
+                lines.forEach((line, idx) => {
+                    if(line.includes('-')) {
+                        const [t, d] = line.split('-');
+                        if(t && d) newTerms.push({ id: Date.now() + idx, term: t.trim(), cn: 'Batch Import', desc: d.trim(), type: 'Context' });
+                    }
+                });
+                if(newTerms.length > 0) {
+                    setTerms([...terms, ...newTerms]);
+                    setBatchInput('');
+                    setIsBatchMode(false);
+                    alert(`Successfully imported ${newTerms.length} terms.`);
+                }
+            };
+
+            const filteredTerms = terms.filter(item => {
+                const matchesFilter = filter === 'All' || item.type === filter;
+                const matchesSearch = item.term.toLowerCase().includes(searchTerm.toLowerCase()) || item.cn.includes(searchTerm);
+                return matchesFilter && matchesSearch;
+            });
+
+            return (
+                React.createElement('div', { className: "animate-fade-in space-y-6" },
+                    React.createElement('div', { className: "flex flex-col md:flex-row justify-between items-end md:items-center gap-4 border-b border-slate-200 pb-6" },
+                        React.createElement('div', null,
+                            React.createElement('h2', { className: "text-2xl font-bold text-slate-800" }, "Legal Terminology"),
+                            React.createElement('p', { className: "text-slate-500 text-sm" }, "Manage vocabulary. Use Batch Mode for bulk entry.")
+                        ),
+                        React.createElement('div', { className: "flex gap-2" },
+                            React.createElement('button', {
+                                onClick: () => setIsBatchMode(!isBatchMode),
+                                className: "bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-slate-50"
+                            }, React.createElement(FileText, { size: 16 }), " Batch Import"),
+                            React.createElement('button', {
+                                onClick: () => alert("手动添加功能"),
+                                className: "bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow-md"
+                            }, React.createElement(Plus, { size: 16 }), " Manual Add")
+                        )
+                    ),
+                    isBatchMode && React.createElement('div', { className: "bg-slate-100 p-6 rounded-xl border border-slate-200 shadow-inner animate-fade-in" },
+                        React.createElement('h3', { className: "font-bold text-slate-700 mb-2" }, "Batch Import Terms"),
+                        React.createElement('p', { className: "text-xs text-slate-500 mb-2" }, "Format: Term - Description (one per line)"),
+                        React.createElement('textarea', {
+                            value: batchInput,
+                            onChange: e => setBatchInput(e.target.value),
+                            className: "w-full h-32 p-3 border rounded mb-2 text-sm font-mono",
+                            placeholder: "Certiorari - A writ seeking judicial review.\nRemand - To send a case back to a lower court."
+                        }),
+                        React.createElement('button', {
+                            onClick: handleBatchAdd,
+                            className: "px-6 py-2 bg-slate-800 text-white rounded hover:bg-slate-900"
+                        }, "Import Terms")
+                    ),
+                    React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" },
+                        filteredTerms.map(item => 
+                            React.createElement('div', {
+                                key: item.id,
+                                className: `bg-white border rounded-lg p-5 hover:shadow-lg transition-all duration-300 group relative overflow-hidden ${item.type === 'Sentence' ? 'border-amber-200 md:col-span-2' : 'border-slate-200'}`
+                            },
+                                React.createElement('div', { className: "absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-100 transition" },
+                                    React.createElement('span', {
+                                        className: `text-[10px] font-bold uppercase px-2 py-1 rounded text-slate-500 ${item.type === 'Sentence' ? 'bg-amber-100' : 'bg-slate-100'}`
+                                    }, item.type)
+                                ),
+                                React.createElement('h3', {
+                                    className: `font-serif font-bold text-slate-800 mb-1 ${item.type === 'Sentence' ? 'text-lg italic' : 'text-xl'}`
+                                }, item.term),
+                                React.createElement('p', { className: "text-amber-600 font-medium text-sm mb-3" }, item.cn),
+                                React.createElement('p', { className: "text-slate-500 text-xs leading-relaxed border-t border-slate-100 pt-3" }, item.desc)
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // --- 模块 2: 案例解剖 ---
+        const CaseAnatomyModule = ({ cases, activeCase, setCaseId }) => {
+            const [activeCard, setActiveCard] = React.useState('facts');
+            
+            const sections = [
+                { id: 'facts', label: 'Facts (事实)', icon: '📝' },
+                { id: 'issue', label: 'Issue (争点)', icon: '❓' },
+                { id: 'rule', label: 'Rule (规则)', icon: '⚖️' },
+                { id: 'reasoning', label: 'Reasoning (推理)', icon: '🧠' },
+                { id: 'holding', label: 'Holding (裁决)', icon: '🔨' }
+            ];
+
+            return (
+                React.createElement('div', { className: "grid lg:grid-cols-12 gap-8 animate-fade-in h-[calc(100vh-200px)] min-h-[600px]" },
+                    React.createElement('div', { className: "lg:col-span-3 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden" },
+                        React.createElement('div', { className: "p-4 bg-slate-50 border-b border-slate-200 font-bold text-slate-700 flex justify-between items-center" },
+                            React.createElement('span', null, "Case Library"),
+                            React.createElement('span', { className: "text-xs bg-slate-200 px-2 py-1 rounded-full" }, cases.length)
+                        ),
+                        React.createElement('div', { className: "flex-1 overflow-y-auto p-2 space-y-2" },
+                            cases.map(c => 
+                                React.createElement('button', {
+                                    key: c.id,
+                                    onClick: () => setCaseId(c.id),
+                                    className: `w-full text-left p-3 rounded-lg transition text-sm ${activeCase.id === c.id ? 'bg-amber-50 border border-amber-200 text-amber-900 ring-1 ring-amber-200' : 'hover:bg-slate-50 text-slate-600'}`
+                                },
+                                    React.createElement('div', { className: "font-bold truncate" }, c.title),
+                                    React.createElement('div', { className: "text-xs opacity-70 mt-1" }, c.citation)
+                                )
+                            )
+                        )
+                    ),
+                    React.createElement('div', { className: "lg:col-span-9 flex flex-col gap-6" },
+                        React.createElement('div', { className: "bg-white p-6 rounded-xl border border-slate-200 shadow-sm" },
+                            React.createElement('h2', { className: "text-3xl font-serif font-bold text-slate-900" }, activeCase.title),
+                            React.createElement('div', { className: "flex gap-3 mt-2" },
+                                React.createElement('span', { className: "text-slate-500 text-sm font-mono bg-slate-100 px-2 py-0.5 rounded" }, activeCase.citation),
+                                activeCase.tags.map(t => 
+                                    React.createElement('span', {
+                                        key: t,
+                                        className: "text-amber-700 text-xs font-medium bg-amber-50 px-2 py-0.5 rounded border border-amber-100"
+                                    }, t)
+                                )
+                            )
+                        ),
+                        React.createElement('div', { className: "flex-1 grid md:grid-cols-12 gap-6 items-start" },
+                            React.createElement('div', { className: "md:col-span-4 flex flex-col gap-3" },
+                                sections.map(section => 
+                                    React.createElement('button', {
+                                        key: section.id,
+                                        onClick: () => setActiveCard(section.id),
+                                        className: `p-4 rounded-xl border transition-all duration-300 text-left flex items-center gap-4 shadow-sm group ${
+                                            activeCard === section.id 
+                                            ? 'bg-slate-800 text-white border-slate-800 translate-x-2 shadow-lg ring-2 ring-slate-200' 
+                                            : 'bg-white text-slate-600 border-slate-200 hover:border-amber-300 hover:bg-amber-50'
+                                        }`
+                                    },
+                                        React.createElement('span', { className: "text-2xl group-hover:scale-110 transition" }, section.icon),
+                                        React.createElement('span', { className: "font-bold" }, section.label)
+                                    )
+                                )
+                            ),
+                            React.createElement('div', { className: "md:col-span-8 h-full bg-white rounded-xl border border-slate-200 shadow-md p-8 relative flex flex-col overflow-y-auto max-h-[500px]" },
+                                React.createElement('div', { className: "absolute top-4 right-4 text-slate-100 pointer-events-none" },
+                                    React.createElement(BookOpen, { size: 120 })
+                                ),
+                                React.createElement('h3', { className: "text-amber-600 font-bold uppercase tracking-widest text-sm mb-6 border-b border-amber-100 pb-2" },
+                                    sections.find(s => s.id === activeCard).label
+                                ),
+                                React.createElement('div', { className: "text-lg md:text-xl font-serif leading-loose text-slate-800 whitespace-pre-wrap relative z-10" },
+                                    activeCase.irac[activeCard] || React.createElement('span', { className: "text-slate-400 italic" }, "No content available for this section.")
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // --- 模块 3: 可视化 ---
+        const VisualizationModule = ({ activeCase }) => {
+            const [vizType, setVizType] = React.useState('cloud'); 
+
+            return (
+                React.createElement('div', { className: "space-y-6 animate-fade-in" },
+                    React.createElement('div', { className: "flex flex-wrap gap-2 border-b border-slate-200 pb-4" },
+                        [
+                            { id: 'cloud', label: 'Keywords Cloud', icon: Layout },
+                            { id: 'network', label: 'Citation Network', icon: Share2 },
+                            { id: 'flow', label: 'Logic Flow', icon: GitPullRequest }
+                        ].map(v => 
+                            React.createElement('button', {
+                                key: v.id,
+                                onClick: () => setVizType(v.id),
+                                className: `flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition ${vizType === v.id ? 'bg-slate-800 text-white shadow ring-2 ring-slate-200' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`
+                            },
+                                React.createElement(v.icon, { size: 16 }),
+                                v.label
+                            )
+                        )
+                    ),
+                    React.createElement('div', { className: "grid md:grid-cols-12 gap-6" },
+                        React.createElement('div', { className: "md:col-span-4 space-y-4" },
+                            React.createElement('h2', { className: "text-2xl font-bold text-slate-800 flex items-center gap-2" },
+                                React.createElement(Brain, { className: "text-amber-500" }),
+                                "Visual Analysis"
+                            ),
+                            React.createElement('p', { className: "text-slate-500 text-sm leading-relaxed" },
+                                "Data generated dynamically from ",
+                                React.createElement('strong', { className: "text-slate-800" }, activeCase.title),
+                                "."
+                            ),
+                            React.createElement('div', { className: "bg-blue-50 p-4 rounded-lg border border-blue-100 text-sm text-blue-800" },
+                                React.createElement('strong', null, "Visualization Tip:"),
+                                vizType === 'cloud' && " Larger words represent higher frequency/importance in the court opinion."
+                            )
+                        ),
+                        React.createElement('div', { className: "md:col-span-8" },
+                            React.createElement('div', { className: "bg-white p-4 rounded-2xl shadow-sm border border-slate-200 min-h-[400px]" },
+                                vizType === 'cloud' && React.createElement(WordCloud, { words: activeCase.wordCloud || [] }),
+                                vizType === 'network' && React.createElement(CitationNetworkGraph, { data: activeCase.citationNetwork || {center: activeCase.title, precedents: []} }),
+                                vizType === 'flow' && React.createElement(IssueFlowGraph, { flow: activeCase.issueFlow || [] })
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // --- 模块 5: 实战演练 ---
+        const PracticeModule = ({ pool }) => {
+            const [currentQuestions, setCurrentQuestions] = React.useState([]);
+            const [answers, setAnswers] = React.useState({});
+            const [showResult, setShowResult] = React.useState(false);
+
+            const refreshQuiz = () => {
+                const count = Math.min(pool.length, 3);
+                const shuffled = [...pool].sort(() => 0.5 - Math.random());
+                setCurrentQuestions(shuffled.slice(0, count));
+                setAnswers({});
+                setShowResult(false);
+            };
+
+            React.useEffect(() => {
+                refreshQuiz();
+            }, [pool]);
+
+            return (
+                React.createElement('div', { className: "max-w-3xl mx-auto animate-fade-in" },
+                    React.createElement('div', { className: "flex justify-between items-center mb-6" },
+                        React.createElement('div', null,
+                            React.createElement('h2', { className: "text-2xl font-bold text-slate-800" }, "Knowledge Check"),
+                            React.createElement('p', { className: "text-slate-500 text-sm" }, `Testing ${pool.length} available questions`)
+                        ),
+                        React.createElement('button', {
+                            onClick: refreshQuiz,
+                            className: "flex items-center gap-2 text-amber-600 hover:text-amber-700 font-medium text-sm transition bg-amber-50 px-4 py-2 rounded-lg"
+                        }, React.createElement(RefreshCw, { size: 16 }), " Refresh Quiz")
+                    ),
+                    React.createElement('div', { className: "bg-white rounded-xl shadow-sm border border-slate-200 p-8 space-y-8" },
+                        currentQuestions.map((q, idx) => 
+                            React.createElement('div', { key: q.id, className: "border-b border-slate-100 pb-6 last:border-0 last:pb-0" },
+                                React.createElement('p', { className: "text-lg text-slate-700 mb-3 font-serif" },
+                                    `${idx + 1}. ${q.text.replace('_____', '_______')}`
+                                ),
+                                React.createElement('div', { className: "flex gap-4 flex-wrap" },
+                                    q.options.map(opt => 
+                                        React.createElement('button', {
+                                            key: opt,
+                                            onClick: () => setAnswers({...answers, [q.id]: opt.toLowerCase()}),
+                                            disabled: showResult,
+                                            className: `px-4 py-2 rounded-md text-sm border transition min-w-[100px] ${
+                                                answers[q.id] === opt.toLowerCase() 
+                                                    ? (showResult 
+                                                        ? (opt.toLowerCase() === q.answer.toLowerCase() ? 'bg-green-100 border-green-500 text-green-700' : 'bg-red-100 border-red-500 text-red-700')
+                                                        : 'bg-slate-800 text-white border-slate-800')
+                                                    : 'border-slate-300 text-slate-600 hover:bg-slate-50'
+                                            }`
+                                        }, opt)
+                                    )
+                                ),
+                                showResult && React.createElement('div', { className: "mt-2 text-sm animate-fade-in" },
+                                    answers[q.id] === q.answer.toLowerCase() ? 
+                                        React.createElement('span', { className: "text-green-600 font-bold flex items-center gap-1" },
+                                            React.createElement(CheckCircle, { size: 14 }), " Correct!"
+                                        ) : 
+                                        React.createElement('span', { className: "text-red-500 flex items-center gap-1" },
+                                            React.createElement(X, { size: 14 }), ` Correct answer: ${q.answer}`
+                                        )
+                                )
+                            )
+                        ),
+                        React.createElement('div', { className: "pt-4 flex justify-center" },
+                            !showResult ? React.createElement('button', {
+                                onClick: () => setShowResult(true),
+                                className: "bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-lg font-bold shadow-md transition transform hover:scale-105"
+                            }, "Check Results") : 
+                            React.createElement('div', { className: "text-center" },
+                                React.createElement('button', {
+                                    onClick: refreshQuiz,
+                                    className: "bg-slate-800 hover:bg-slate-900 text-white px-8 py-3 rounded-lg font-bold shadow-md transition"
+                                }, "Next Set")
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // --- 主应用 ---
+        const App = () => {
+            const [activeTab, setActiveTab] = React.useState('manager');
+            const [cases, setCases] = React.useState(initialCasesData);
+            const [terms, setTerms] = React.useState(initialTermsData);
+            const [questions, setQuestions] = React.useState(initialQuestionPool);
+            const [selectedCaseId, setSelectedCaseId] = React.useState(cases[0].id);
+
+            const activeCase = React.useMemo(() => 
+                cases.find(c => c.id === selectedCaseId) || cases[0]
+            , [cases, selectedCaseId]);
+
+            React.useEffect(() => {
+                if (cases.length > 0 && !cases.find(c => c.id === selectedCaseId)) {
+                    setSelectedCaseId(cases[cases.length - 1].id);
+                }
+            }, [cases]);
+
+            const tabs = [
+                { id: 'manager', icon: FolderPlus, label: '案卷中心' },
+                { id: 'lexicon', icon: BookOpen, label: '术语库' },
+                { id: 'anatomy', icon: Layout, label: '判决分析' },
+                { id: 'visuals', icon: PieChart, label: '可视化' },
+                { id: 'practice', icon: CheckCircle, label: '实战演练' }
+            ];
+
+            return (
+                React.createElement('div', { className: "min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col" },
+                    // Header
+                    React.createElement('header', { className: "bg-slate-900 text-white shadow-xl sticky top-0 z-50" },
+                        React.createElement('div', { className: "max-w-7xl mx-auto px-4 py-4 flex justify-between items-center" },
+                            React.createElement('div', { className: "flex items-center gap-3" },
+                                React.createElement('div', { className: "bg-amber-500 p-2 rounded-lg shadow-lg shadow-amber-500/20" },
+                                    React.createElement(Scale, { className: "w-6 h-6 text-slate-900" })
+                                ),
+                                React.createElement('div', null,
+                                    React.createElement('h1', { className: "text-xl font-bold tracking-wide" }, 
+                                        "LexCase ",
+                                        React.createElement('span', { className: "text-amber-400 font-light" }, "Pro")
+                                    )
+                                )
+                            ),
+                            React.createElement('nav', { className: "hidden md:flex gap-1 bg-slate-800/50 p-1 rounded-lg backdrop-blur-sm overflow-x-auto" },
+                                tabs.map(tab => 
+                                    React.createElement('button', {
+                                        key: tab.id,
+                                        onClick: () => setActiveTab(tab.id),
+                                        className: `flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition whitespace-nowrap ${activeTab === tab.id ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-700/50'}`
+                                    },
+                                        React.createElement(tab.icon, { size: 14 }),
+                                        tab.label
+                                    )
+                                )
+                            )
+                        )
+                    ),
+                    // Main Content
+                    React.createElement('main', { className: "flex-grow max-w-7xl mx-auto w-full px-4 py-8" },
+                        activeTab === 'manager' && React.createElement(CaseManagerModule, {
+                            cases: cases,
+                            setCases: setCases,
+                            setTerms: setTerms,
+                            setQuestions: setQuestions,
+                            setActiveTab: setActiveTab,
+                            setSelectedCaseId: setSelectedCaseId
+                        }),
+                        activeTab === 'lexicon' && React.createElement(LexiconModule, {
+                            terms: terms,
+                            setTerms: setTerms
+                        }),
+                        activeTab === 'anatomy' && React.createElement(CaseAnatomyModule, {
+                            cases: cases,
+                            activeCase: activeCase,
+                            setCaseId: setSelectedCaseId
+                        }),
+                        activeTab === 'visuals' && React.createElement(VisualizationModule, {
+                            activeCase: activeCase
+                        }),
+                        activeTab === 'practice' && React.createElement(PracticeModule, {
+                            pool: questions
+                        })
+                    ),
+                    // Footer
+                    React.createElement('footer', { className: "bg-white border-t border-slate-200 mt-12 py-10 text-slate-500" },
+                        React.createElement('div', { className: "max-w-6xl mx-auto px-4" },
+                            React.createElement('h3', { className: "font-bold text-slate-800 mb-6 flex items-center gap-2 text-lg" },
+                                React.createElement(PenTool, { size: 20 }),
+                                " 全设计与迭代档案 (Design Evolution)"
+                            ),
+                            React.createElement('div', { className: "grid md:grid-cols-5 gap-4 text-xs border-l-2 border-slate-200 pl-6 relative" },
+                                // Timeline items
+                                [
+                                    { version: "V1.0 原型验证", desc: "确立了 IRAC 结构分析法；构建了基础的双语术语卡片（Flip Card）与静态判决书展示。" },
+                                    { version: "V2.0 动态交互", desc: "引入 State 管理，支持用户手动添加术语；增加了模拟 AI 助教（后移除）与基础填空题库。" },
+                                    { version: "V3.0 深度可视化", desc: "开发了引用网络图（Citation Network）和逻辑流图；尝试了 PDF 解析概念；增加了句型库。" },
+                                    { version: "V4.0 平台化架构", desc: "重构为'案卷中心'模式，支持多案件切换；数据驱动所有视图；实现了知识库的自动积累。" },
+                                    { version: "V5.0 智能批处理 (Current)", desc: "新增模拟 NLP 批量导入，解决录入效率痛点；增加 Reasoning 深度分析；优化视觉动效，提升沉浸感。" }
+                                ].map((item, index) => 
+                                    React.createElement('div', {
+                                        key: index,
+                                        className: `relative ${index < 4 ? 'pb-6' : ''}`
+                                    },
+                                        React.createElement('div', {
+                                            className: `absolute -left-[31px] top-0 w-3 h-3 rounded-full ${index === 4 ? 'bg-amber-500 ring-4 ring-amber-100' : 'bg-slate-300'}`
+                                        }),
+                                        React.createElement('strong', {
+                                            className: `block mb-1 text-sm ${index === 4 ? 'text-amber-600' : 'text-slate-800'}`
+                                        }, item.version),
+                                        React.createElement('p', null, item.desc)
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // 渲染应用
+        ReactDOM.render(React.createElement(App), document.getElementById('root'));
+    </script>
+</body>
+</html>
